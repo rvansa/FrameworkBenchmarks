@@ -2,6 +2,9 @@ package vertx;
 
 import com.fizzed.rocker.ContentType;
 import com.fizzed.rocker.RockerOutputFactory;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import io.reactiverse.pgclient.*;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
@@ -24,6 +27,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -70,7 +74,7 @@ public class App extends AbstractVerticle implements Handler<HttpServerRequest> 
   private static final CharSequence RESPONSE_TYPE_JSON = HttpHeaders.createOptimized("application/json");
 
   private static final String HELLO_WORLD = "Hello, world!";
-  private static final Buffer HELLO_WORLD_BUFFER = Buffer.factory.directBuffer(HELLO_WORLD, "UTF-8");
+  private static final Buffer HELLO_WORLD_BUFFER;
 
   private static final CharSequence HEADER_SERVER = HttpHeaders.createOptimized("server");
   private static final CharSequence HEADER_DATE = HttpHeaders.createOptimized("date");
@@ -94,6 +98,12 @@ public class App extends AbstractVerticle implements Handler<HttpServerRequest> 
   private CharSequence[] plaintextHeaders;
 
   private final RockerOutputFactory<BufferRockerOutput> factory = BufferRockerOutput.factory(ContentType.RAW);
+
+  static {
+    ByteBuf nettyBuffer = ByteBufAllocator.DEFAULT.directBuffer();
+    nettyBuffer.writeBytes(HELLO_WORLD.getBytes(StandardCharsets.UTF_8));
+    HELLO_WORLD_BUFFER = Buffer.buffer(nettyBuffer);
+  }
 
   public static CharSequence createDateHeader() {
     return HttpHeaders.createOptimized(DateTimeFormatter.RFC_1123_DATE_TIME.format(ZonedDateTime.now()));
